@@ -7,11 +7,26 @@ int main(int argc, char **argv) {
     t_ping ping = {0};
     init_struct(&ping, argv[0]);
 
-    if (!is_root(&ping) || !parsing(argc, argv, &ping) || !create_raw_socket(&ping)) {
-        return 1;
+    if (!is_root(&ping) ||
+        !parsing(argc, argv, &ping) ||
+        !create_raw_socket(&ping) ||
+        !verify_usage(&ping)) {
+            return 1;
     }
 
     return ft_ping(&ping);
+}
+
+bool verify_usage(t_ping *ping) {
+    if ( ping->destination_host == NULL) {
+        print_usage_error();
+        return false;
+    }
+    return true;
+}
+
+void print_usage_error(){
+    fprintf(stderr, "%s\n", USAGE_ERROR);
 }
 
 bool is_root(t_ping *ping) {
@@ -24,6 +39,8 @@ bool is_root(t_ping *ping) {
 
 void init_struct(t_ping *ping, char *string) {
     ping->binary_name = string;
+    ping->sa.sin_family = AF_INET;
+    ping->sa.sin_port = htons(PORT_NO);
 }
 
 bool create_raw_socket(t_ping *ping){

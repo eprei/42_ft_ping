@@ -2,7 +2,7 @@
 
 bool parsing(const int argc, char **argv, t_ping *ping) {
     if (argc < 2) {
-        fprintf(stderr, "%s\n", USAGE);
+        print_usage_error();
         return false;
     }
 
@@ -13,11 +13,7 @@ bool parsing(const int argc, char **argv, t_ping *ping) {
                 break;
             case TTL_FLAG:
                 ping->flags.ttl_flag = true;
-                if (!get_flag_value(argc, argv, ping, &i)) return false;
-                break;
-            case T_FLAG:
-                ping->flags.t_flag = true;
-                if (!get_flag_value(argc, argv, ping, &i)) return false;
+                if (!get_ttl_value(ping, argv[i])) return false;
                 break;
             case W_FLAG:
                 ping->flags.W_flag = true;
@@ -28,8 +24,8 @@ bool parsing(const int argc, char **argv, t_ping *ping) {
                 if (!get_flag_value(argc, argv, ping, &i)) return false;
                 break;
             case H_FLAG:
-                ping->flags.H_flag = true;
-                break;
+                print_usage();
+                return false;
             default:
                 ping->destination_host = argv[i];
         }
@@ -41,7 +37,7 @@ int is_flag(const char *str) {
     if (strcmp("-v", str) == 0) {
         return V_FLAG;
     }
-    if (strcmp("--ttl", str) == 0) {
+    if (strncmp("--ttl=", str, 6) == 0) {
         return TTL_FLAG;
     }
     if (strcmp("-W", str) == 0) {
@@ -60,8 +56,23 @@ bool get_flag_value(int argc, char **argv, t_ping *ping, int *i) {
     if ((*i + 1 < argc && atoi(argv[*i + 1]) > 0) || *argv[*i + 1] == '0') {
         ping->flags.w_num = atoi(argv[++*i]);
     } else {
-        fprintf(stderr, "Error: %s requires a number between 0 and %d\n", argv[*i], INT_MAX);
+        fprintf(stderr, "ft_ping: invalid argument: '%s': Numerical result out of range\n", argv[*i+1]);
         return false;
     }
     return true;
+}
+
+bool get_ttl_value (t_ping *ping, char *arg) {
+    ping->flags.ttl_value = atoi(&arg[6]);
+
+    if (1 <= ping->flags.ttl_value && ping->flags.ttl_value <= 255){
+        return true;
+    }
+
+    fprintf(stderr, "ft_ping: invalid argument: '%d': out of range: 1 <= value <= 255\n", ping->flags.ttl_value);
+    return false;
+}
+
+void print_usage() {
+    fprintf(stderr, "%s\n", USAGE_MSG);
 }
