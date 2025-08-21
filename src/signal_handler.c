@@ -1,4 +1,4 @@
-#include "ft_ping.h"
+#include "ping.h"
 
 extern volatile sig_atomic_t loop_running;
 

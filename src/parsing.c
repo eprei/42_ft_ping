@@ -1,4 +1,4 @@
-#include "ft_ping.h"
+#include "ping.h"
 
 bool parsing(const int argc, char **argv, t_ping *ping) {
     if (argc < 2) {
@@ -17,11 +17,11 @@ bool parsing(const int argc, char **argv, t_ping *ping) {
                 break;
             case W_FLAG:
                 ping->flags.W_flag = true;
-                if (!get_flag_value(argc, argv, ping, &i)) return false;
+                if (!get_flag_value(argc, argv, &i, &ping->flags.W_num)) return false;
                 break;
             case w_FLAG:
                 ping->flags.w_flag = true;
-                if (!get_flag_value(argc, argv, ping, &i)) return false;
+                if (!get_flag_value(argc, argv, &i, &ping->flags.w_num)) return false;
                 break;
             case H_FLAG:
                 print_usage();
@@ -52,9 +52,9 @@ int is_flag(const char *str) {
     return NOT_A_FLAG;
 }
 
-bool get_flag_value(int argc, char **argv, t_ping *ping, int *i) {
+bool get_flag_value(int argc, char **argv, int *i, int *flag_value) {
     if ((*i + 1 < argc && atoi(argv[*i + 1]) > 0) || *argv[*i + 1] == '0') {
-        ping->flags.w_num = atoi(argv[++*i]);
+        *flag_value = atoi(argv[++*i]);
     } else {
         fprintf(stderr, "ft_ping: invalid argument: '%s': Numerical result out of range\n", argv[*i+1]);
         return false;

@@ -1,4 +1,4 @@
-#include "ft_ping.h"
+#include "ping.h"
 
 int main(int argc, char **argv) {
 
