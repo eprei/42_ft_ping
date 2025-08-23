@@ -1,7 +1,6 @@
 #include "ping.h"
 
-// TODO incorrect behaviour when using dns
-// TODO incorrect first package when host unreachable ./ft_pint 10.0.2.230 -W 1 "64 bytes from 0.0.0.0: icmp_seq=0 ttl=0 time=1022.4 ms", se trato pero ahora no recibo mas timeout para icmp_seq 1
+// TODO incorrect first package when host unreachable ./ft_ping 10.0.2.230 -W 1 "64 bytes from 0.0.0.0: icmp_seq=0 ttl=0 time=1022.4 ms", se trato pero ahora no recibo mas timeout para icmp_seq 1
 // TODO respecto al renglonnnnnnn aanteeerior, si el host es una direccion valida de nuestra red pero inexistente, no hay error. si el host es cualquier cosa no funciona
 // TODO cuando no se recibe nada, el verdadero ping no imprime nada, ni siquiera el timeout, el primer paquete perdido es algo     y no se que
 
@@ -15,21 +14,39 @@ int ft_ping(t_ping *ping) {
     return 1;
 }
 
-void get_timeout(t_ping *ping, struct timeval *timeout) {
+void get_timeout(const t_ping *ping, struct timeval *timeout) {
     timeout->tv_sec = ping->flags.W_flag == true ? ping->flags.W_num: RECV_TIMEOUT;
     timeout->tv_usec = 0;
 }
 
+void print_dest_unreach(const int msg_count, char* sender_ip, const struct icmphdr* recv_hdr)
+{
+    char msg[50];
+
+    switch (recv_hdr->code){
+    case 1:
+        strcpy(msg, HOST_UNREACHABLE);
+        break;
+    case 0:
+        strcpy(msg, NET_UNREACHABLE);
+        break;
+    default:
+        break;
+    }
+    printf("From %s icmp_seq=%d %s\n", sender_ip, msg_count, msg);
+}
+
 void send_ping(t_ping *ping) {
-    int ttl = ping->flags.ttl_value != 0 ? ping->flags.ttl_value : DEFAULT_TTL;
+    const int ttl = ping->flags.t_value != 0 ? ping->flags.t_value : DEFAULT_TTL;
     int msg_count = 0, addr_len, msg_received_count = 0, errors = 0;
-    char rbuffer[128]; // TODO 128 magic number ?
-    struct ping_pkt pckt;
-    struct sockaddr_in r_addr;
-    struct timespec time_start_pkt, time_end_pkt, time_start_total, time_end_total;
-    long double total_elapsed_time;
+    char recv_buffer[RECV_BUFFER_SIZE];
+    struct ping_pkt packet;
+    struct sockaddr_in recv_addr;
+    struct timespec time_start_packet, time_end_packet, time_start_total;
+    // struct timespec time_end_total;
     struct timeval timeout;
 
+    // printf("ttl value = %d\n", ttl);
     clock_gettime(CLOCK_MONOTONIC, &time_start_total);
     // Set socket options at IP to TTL and value to 64
     if (setsockopt(ping->socket_fd, SOL_IP, IP_TTL, &ttl, sizeof(ttl)) != 0) {
@@ -43,110 +60,116 @@ void send_ping(t_ping *ping) {
     get_timeout(ping, &timeout);
     setsockopt(ping->socket_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof timeout);
 
-    printf("PING %s (%s) 56(84) bytes of data.\n", ping->destination_host, ping->ip); // TODO get size pack dynamically ?
+    printf("PING %s (%s): %lu data bytes\n", ping->destination_host, ping->ip, PING_PKT_S - sizeof(struct icmphdr));
 
     // Send ICMP packet in an infinite loop
     while (loop_running && !time_limit_reached(ping, time_start_total)) {
         bool packet_sent = true;
-        fill_packet(&msg_count, &pckt);
+        fill_packet(&msg_count, &packet);
 
-        clock_gettime(CLOCK_MONOTONIC, &time_start_pkt);
+        clock_gettime(CLOCK_MONOTONIC, &time_start_packet);
         // Send packet
-        if (sendto(ping->socket_fd, &pckt, sizeof(pckt), 0, (struct sockaddr*)&ping->sa, sizeof(ping->sa)) <= 0) {
-            fprintf(stderr, "Packet Sending Failed!\n");
+        if (sendto(ping->socket_fd, &packet, sizeof(packet), 0, (struct sockaddr*)&ping->sa, sizeof(ping->sa)) <= 0) {
+            // fprintf(stderr, "Packet Sending Failed!\n");
             packet_sent = false;
         }
 
         // Receive packet
-        memset(rbuffer, 0, sizeof(rbuffer));
-        addr_len = (int) sizeof(r_addr);
-        memset(&r_addr, 0, sizeof(r_addr));
-        if (recvfrom(ping->socket_fd, rbuffer, sizeof(rbuffer), 0, (struct sockaddr*)&r_addr, (socklen_t *) &addr_len) <= 0 && msg_count > 1) {
+        memset(recv_buffer, 0, sizeof(recv_buffer));
+        addr_len = (int) sizeof(recv_addr);
+        memset(&recv_addr, 0, sizeof(recv_addr));
+
+        size_t bytes_received = recvfrom(ping->socket_fd, recv_buffer, sizeof(recv_buffer), 0, (struct sockaddr*)&recv_addr, (socklen_t *) &addr_len);
+        if (bytes_received == (size_t) -1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 printf("Request timeout for icmp_seq %d\n", msg_count);
             } else {
-//                fprintf(stderr, "Packet receive failed!\n");
-            }
-            errors++;
-        } else {
-            long double rtt = elapsed_time_ms(&time_start_pkt, &time_end_pkt);
-            process_rtt(&ping->rtt_list, rtt);
-            printf("recibido %d\n", msg_count);
-            if (packet_sent) {
-                char *sender_ip = inet_ntoa(r_addr.sin_addr);
-                struct iphdr *ip_hdr = (struct iphdr *)rbuffer;
-                struct icmphdr *recv_hdr = (struct icmphdr *)(rbuffer + (ip_hdr->ihl * 4)); //TODO ver el pq de este offset
-
-                if (recv_hdr->type == ICMP_ECHOREPLY && recv_hdr->code == 0 && recv_hdr->un.echo.id == getpid()) {
-                        printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.1Lf ms\n",
-                               PING_PKT_S, sender_ip, recv_hdr->un.echo.sequence, ip_hdr->ttl, get_last_rtt(ping->rtt_list)); //TODO PING_PKT_S deberia ser substituido por el tamano del ICMP echo reply recivido && valor TTL no es igual al del ping real
-                } else if (recv_hdr->type == ICMP_DEST_UNREACH && recv_hdr->code == 1){
-                    printf("From %s icmp_seq=%d %s\n", sender_ip, msg_count, HOST_UNREACHABLE);
+                // fprintf(stderr, "Packet receive failed!\n");
+                if (loop_running) {
                     errors++;
                 }
-                msg_received_count++; // TODO donde va???
             }
-//            if (!loop_running) {
-//                msg_count--;
-//            }
+        } else {
+            if (packet_sent) {
+                char *sender_ip = inet_ntoa(recv_addr.sin_addr);
+                const struct iphdr *ip_hdr = (struct iphdr *)recv_buffer;
+                const struct icmphdr *recv_hdr = (struct icmphdr *)(recv_buffer + ip_hdr->ihl * 4); // offset by ip header length
+
+                if (recv_hdr->type == ICMP_ECHOREPLY && recv_hdr->code == 0 && recv_hdr->un.echo.id == getpid()) {
+                    const long double rtt = get_elapsed_time_ms(&time_start_packet, &time_end_packet);
+                    process_rtt(&ping->rtt_list, rtt);
+                    printf("%lu bytes from %s: icmp_seq=%d ttl=%d time=%.1Lf ms\n",
+                        bytes_received - sizeof(struct iphdr), sender_ip, recv_hdr->un.echo.sequence, ip_hdr->ttl,
+                               get_last_rtt(ping->rtt_list));
+                    msg_received_count++;
+                } else if (recv_hdr->type == ICMP_DEST_UNREACH){
+                    print_dest_unreach(msg_count, sender_ip, recv_hdr);
+                    errors++;
+                } else if (recv_hdr->type == ICMP_TIME_EXCEEDED && recv_hdr->code == 0){
+                    printf("From %s icmp_seq=%d %s\n", sender_ip, msg_count, TTL_EXCEEDED);
+                    errors++;
+                }
+            }
+            if (!loop_running) {
+                msg_count--;
+            }
         }
         usleep(SLEEP_RATE);
     }
 
-    total_elapsed_time = elapsed_time_ms(&time_start_total, &time_end_total);
-    print_statistics(ping, msg_count, msg_received_count, total_elapsed_time, errors);
+    // const long double total_elapsed_time = get_elapsed_time_ms(&time_start_total, &time_end_total);
+    print_stats(ping, msg_count, msg_received_count, errors);
 }
 
-bool time_limit_reached(t_ping *ping, struct timespec time_start) {
+bool time_limit_reached(const t_ping *ping, const struct timespec time_start) {
     struct timespec time_end;
 
     if (ping->flags.w_flag){
-        return elapsed_time_ms(&time_start, &time_end) / 1000 > ping->flags.w_num;
+        return get_elapsed_time_ms(&time_start, &time_end) / 1000 > ping->flags.w_num;
     }
     return false;
 }
 
-long double elapsed_time_ms(struct timespec *time_start, struct timespec *time_end) {
-    long double total_elapsed_time_ms;
+long double get_elapsed_time_ms(const struct timespec *time_start, struct timespec *time_end) {
     clock_gettime(CLOCK_MONOTONIC, time_end);
-    double nanoseconds_elapsed = ((double)((*time_end).tv_nsec - (*time_start).tv_nsec)) / 1000000.0;
-    total_elapsed_time_ms = ((*time_end).tv_sec - (*time_start).tv_sec) * 1000.0 + nanoseconds_elapsed;
+    const double nanoseconds_elapsed = ((double)(time_end->tv_nsec - (*time_start).tv_nsec)) / 1000000.0;
+    const long double total_elapsed_time_ms = (time_end->tv_sec - time_start->tv_sec) * 1000.0 + nanoseconds_elapsed;
     return total_elapsed_time_ms;
 }
 
-void print_statistics(const t_ping *ping, int msg_count, int msg_received_count, long double total_time, int errors) {
-    double safe_divisor = msg_count > 0 ? msg_count : 1;
+void print_stats(const t_ping *ping, const int msg_count, const int msg_received_count, const int errors) {
+    const double safe_divisor = msg_count > 0 ? msg_count : 1;
     char error_str[25] = "";
 
-    if (errors != 0){
+    if (errors > 0){
         sprintf(error_str, " +%d errors,", errors);
     }
 
     printf("--- %s ping statistics ---\n", ping->destination_host);
-    printf("%d packets transmitted, %d received,%s %.0f%% packet loss, time %.0Lfms\n", msg_count, msg_received_count,
-           error_str, ((msg_count - msg_received_count) / safe_divisor) * 100.0, total_time);
-    printf("rtt min/avg/max/mdev = %.3Lf/%.3Lf/%.3Lf/%.3Lf ms\n", get_min_rtt(ping->rtt_list),
-           get_avg_rtt(ping->rtt_list), get_max_rtt(ping->rtt_list), get_mdev_rtt(ping->rtt_list));
-
+    printf("%d packets transmitted, %d packets received,%s %.0f%% packet loss\n", msg_count, msg_received_count,
+           error_str, ((msg_count - msg_received_count) / safe_divisor) * 100.0);
+    if (msg_received_count > 0){
+        printf("round-trip min/avg/max/stddev = %.3Lf/%.3Lf/%.3Lf/%.3Lf ms\n", get_min_rtt(ping->rtt_list),
+               get_avg_rtt(ping->rtt_list), get_max_rtt(ping->rtt_list), get_mdev_rtt(ping->rtt_list));
+    }
     free_rtt_list(ping->rtt_list);
 }
 
-void fill_packet(int *msg_count, struct ping_pkt *pckt) {
+void fill_packet(int *msg_count, struct ping_pkt *packet) {
     int i;
-    bzero(pckt, sizeof(*pckt));
-    (*pckt).icmp_header.type = ICMP_ECHO;
-    (*pckt).icmp_header.un.echo.id = getpid();
+    bzero(packet, sizeof(*packet));
+    packet->icmp_header.type = ICMP_ECHO;
+    packet->icmp_header.un.echo.id = getpid();
 
-    for (i = 0; i < (int) sizeof((*pckt).msg) - 1; i++)
-        (*pckt).msg[i] = i + '0';
+    for (i = 0; i < (int) sizeof(packet->msg) - 1; i++)
+        packet->msg[i] = i + '0';
 
-    (*pckt).msg[i] = 0;
-    (*pckt).icmp_header.un.echo.sequence = ++(*msg_count);
-    (*pckt).icmp_header.checksum = checksum(pckt, sizeof(*pckt));
-    printf("paquet %d\n", *msg_count);
+    packet->msg[i] = 0;
+    packet->icmp_header.un.echo.sequence = ++*msg_count;
+    packet->icmp_header.checksum = checksum(packet, sizeof(*packet));
 }
 
-//TODO review this function
+// RFC 1071
 unsigned short checksum(void *b, int len) {
     unsigned short *buf = b;
     unsigned int sum = 0;

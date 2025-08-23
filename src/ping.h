@@ -23,43 +23,45 @@
 
 # define NOT_A_FLAG 0
 # define V_FLAG 1
-# define TTL_FLAG 2
+# define T_FLAG 2
 # define W_FLAG 3
 # define w_FLAG 4
 # define H_FLAG 5
 
 # define PING_PKT_S 64              // ping packet size
-# define PORT_NO 0                  // automatic port number TODO why ?
+# define PORT_NO 0                  // no port
 # define SLEEP_RATE 1000000         // ping sleep rate (in microseconds)
 # define RECV_TIMEOUT 4             // timeout for receiving packets (in seconds)
-# define DEFAULT_TTL 60
+# define DEFAULT_TTL 64
+# define RECV_BUFFER_SIZE 128
 
 # define UNKNOWN_HOST_MSG "%s: %s: Name or service not known\n"
 # define HOST_UNREACHABLE "Destination Host Unreachable"
+# define NET_UNREACHABLE "Destination Net Unreachable"
+# define TTL_EXCEEDED "Time to live exceeded"
 
-# define USAGE_MSG "Usage                                       \n\
-ft_ping [options] <destination>                                 \n\
-                                                                \n\
-<destination>              dns name or ip address               \n\
-                                                                \n\
-        Options:                                                \n\
--h                         print help and exit                  \n\
---ttl <time to live>       define time to live                  \n\
--v                         verbose output                       \n\
--w <deadline>              reply wait <deadline> in seconds     \n\
--W <timeout>               time to wait for response            "
+# define USAGE_MSG "Usage                                         \n\
+  ft_ping [options] <destination>                                 \n\
+                                                                  \n\
+Options:                                                          \n\
+  <destination>              dns name or ip address               \n\
+  -h                         print help and exit                  \n\
+  -t <time to live>          define time to live                  \n\
+  -v                         verbose output                       \n\
+  -w <deadline>              reply wait <deadline> in seconds     \n\
+  -W <timeout>               time to wait for response            "
 
 # define USAGE_ERROR "ft_ping: usage error: Destination address required"
 
 struct ping_pkt {
-    struct icmphdr icmp_header; // TODO refactor rename for something more meaningful
+    struct icmphdr icmp_header;
     char msg[PING_PKT_S - sizeof(struct icmphdr)];
 };
 
 typedef struct s_flags {
     bool v_flag;        // Verbose output
-    bool ttl_flag;      // Time to live flag
-    int ttl_value;      // Time to live value
+    bool t_flag;        // Time to live flag
+    int t_value;        // Time to live value
     bool W_flag;        // Wait W_num seconds for a response flag
     int W_num;          // Wait W_num seconds for a response
     bool w_flag;        // Stop after w_num seconds flag
@@ -88,18 +90,18 @@ int ft_ping(t_ping *ping);
 void signal_handler(int signal);
 bool convert_address(t_ping *ping);
 void init_struct(t_ping *ping, char *string);
-bool is_root(t_ping *ping);
+bool is_root(const t_ping *ping);
 bool dns_lookup(t_ping *ping);
 bool create_raw_socket(t_ping *ping);
 void send_ping(t_ping *pin);
 unsigned short checksum(void *b, int len);
 int is_flag(const char *str);
-bool get_flag_value(int argc, char **argv, int *i, int *flag_value);
-bool get_ttl_value(t_ping *ping, char *arg);
+bool get_flag_value(const int *argc, char **argv, int *i, int *flag_value_store, int flag);
+bool get_ttl_value (const int *argc, char **argv, int *i, t_ping *ping);
 void print_usage();
 void print_usage_error();
-bool verify_usage(t_ping *ping);
-void fill_packet(int *msg_count, struct ping_pkt *pckt);
+bool verify_usage(const t_ping *ping);
+void fill_packet(int *msg_count, struct ping_pkt *packet);
 void exit_error(char *str);
 void process_rtt(t_rtt **rtt_list, long double rtt);
 long double get_last_rtt(t_rtt *rtt_list);
@@ -108,9 +110,9 @@ long double get_max_rtt(t_rtt *rtt_list);
 long double get_avg_rtt(t_rtt *rtt_list);
 long double get_mdev_rtt(t_rtt *rtt_list);
 void free_rtt_list(t_rtt *rtt_node);
-void print_statistics(const t_ping *ping, int msg_count, int msg_received_count, long double total_time, int errors);
-long double elapsed_time_ms(struct timespec *time_start, struct timespec *time_end);
-void get_timeout(t_ping *ping, struct timeval *timeout);
-bool time_limit_reached(t_ping *ping, struct timespec time_start);
+void print_stats(const t_ping *ping, int msg_count, int msg_received_count, int errors);
+long double get_elapsed_time_ms(const struct timespec *time_start, struct timespec *time_end);
+void get_timeout(const t_ping *ping, struct timeval *timeout);
+bool time_limit_reached(const t_ping *ping, struct timespec time_start);
 
 #endif

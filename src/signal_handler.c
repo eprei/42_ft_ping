@@ -2,9 +2,8 @@
 
 extern volatile sig_atomic_t loop_running;
 
-void signal_handler(int signal) {
+void signal_handler(const int signal) {
     if (SIGINT == signal) {
-        printf("\n");
         loop_running = 0;
     }
 }

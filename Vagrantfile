@@ -31,7 +31,8 @@ Vagrant.configure("2") do |config|
                 cmake \
                 git \
                 gdb \
-                g++
+                g++ \
+                valgrind
 
             # Minimal graphic environment
             apt-get install -y --no-install-recommends \

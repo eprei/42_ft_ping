@@ -1,6 +1,6 @@
 #include "ping.h"
 
-int main(int argc, char **argv) {
+int main(const int argc, char **argv) {
 
     signal(SIGINT, signal_handler);
 
@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     return ft_ping(&ping);
 }
 
-bool verify_usage(t_ping *ping) {
+bool verify_usage(const t_ping *ping) {
     if ( ping->destination_host == NULL) {
         print_usage_error();
         return false;
@@ -29,7 +29,7 @@ void print_usage_error(){
     fprintf(stderr, "%s\n", USAGE_ERROR);
 }
 
-bool is_root(t_ping *ping) {
+bool is_root(const t_ping *ping) {
     if (getuid() != 0) {
         fprintf(stderr, "%s must be run as root\n", ping->binary_name);
         return false;
