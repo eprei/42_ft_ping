@@ -17,16 +17,10 @@ int main(const int argc, char **argv) {
     return ft_ping(&ping);
 }
 
-bool verify_usage(const t_ping *ping) {
-    if ( ping->destination_host == NULL) {
-        print_usage_error();
-        return false;
-    }
-    return true;
-}
-
-void print_usage_error(){
-    fprintf(stderr, "%s\n", USAGE_ERROR);
+void init_struct(t_ping *ping, char *string) {
+    ping->binary_name = string;
+    ping->sa.sin_family = AF_INET;
+    ping->sa.sin_port = htons(PORT_NO);
 }
 
 bool is_root(const t_ping *ping) {
@@ -37,20 +31,22 @@ bool is_root(const t_ping *ping) {
     return true;
 }
 
-void init_struct(t_ping *ping, char *string) {
-    ping->binary_name = string;
-    ping->sa.sin_family = AF_INET;
-    ping->sa.sin_port = htons(PORT_NO);
-}
-
 bool create_raw_socket(t_ping *ping){
     ping->socket_fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 
     if (ping->socket_fd < 0) {
-//        fprintf(stderr, "\nSocket file descriptor not received!\n");
+        //        fprintf(stderr, "\nSocket file descriptor not received!\n");
         return false;
     } else {
-//        printf("\nSocket file descriptor %d received\n", ping->socket_fd);
+        //        printf("\nSocket file descriptor %d received\n", ping->socket_fd);
         return true;
     }
+}
+
+bool verify_usage(const t_ping *ping) {
+    if ( ping->destination_host == NULL) {
+        print_usage_error();
+        return false;
+    }
+    return true;
 }

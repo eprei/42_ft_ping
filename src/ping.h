@@ -125,7 +125,7 @@ void init_struct(t_ping *ping, char *string);
 bool is_root(const t_ping *ping);
 bool dns_lookup(t_ping *ping);
 bool create_raw_socket(t_ping *ping);
-void send_ping(t_ping *pin);
+void ping_loop(t_ping *pin);
 unsigned short checksum(void *b, int len);
 int is_flag(const char *str);
 bool get_flag_value(const int *argc, char **argv, int *i, int *flag_value_store, int flag);
@@ -145,6 +145,16 @@ void free_rtt_list(t_rtt *rtt_node);
 void print_stats(const t_ping *ping, int msg_count, int msg_received_count, int errors);
 long double get_elapsed_time_ms(const struct timespec *time_start, struct timespec *time_end);
 void get_timeout(const t_ping *ping, struct timeval *timeout);
-bool time_limit_reached(const t_ping *ping, struct timespec time_start);
+bool is_time_limit_reached(const t_ping *ping, struct timespec time_start);
+void print_stats(const t_ping *ping, const int msg_count, const int msg_received_count, const int errors);
+void print_non_echo_icmp(const t_ping *ping, const struct iphdr *base_ip_hdr, const struct icmphdr *icmp_hdr, char* sender_ip, const unsigned long received_packet_size);
+void print_custom_message(const struct icmphdr* icmp_hdr);
+void print_packet_content(const struct iphdr* base_ip_hdr);
+void print_first_line(t_ping* ping);
+void print_dest_unreach(char* sender_ip, const struct icmphdr* recv_hdr, const long unsigned int packet_received_size);
+void print_option_need_argument(const int flag_value);
+bool is_time_limit_reached(const t_ping *ping, const struct timespec time_start);
+long double get_elapsed_time_ms(const struct timespec *time_start, struct timespec *time_end);
+void get_timeout(const t_ping *ping, struct timeval *timeout);
 
 #endif

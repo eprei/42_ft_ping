@@ -1,6 +1,6 @@
 NAME = ft_ping
 
-SRCS = src/main.c src/ping.c src/parsing.c src/signal_handler.c src/rtt.c src/net_utils.c src/error.c
+SRCS = src/main.c src/ping.c src/parsing.c src/signal_handler.c src/rtt.c src/net_utils.c src/error.c src/print.c src/time.c src/packet_utils.c
 OBJ = $(SRCS:.c=.o)
 
 TEST_NAME = test
@@ -31,5 +31,3 @@ run: test
 re: fclean all
 
 .PHONY: all clean fclean re test
-
-#export PS1="\e[0;32m[\u@\h \W]\$ \e[m "

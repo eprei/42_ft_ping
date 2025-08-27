@@ -31,5 +31,3 @@ bool dns_lookup(t_ping *ping) {
 
     return true;
 }
-//TODO rever todos los mensajes de impresion con el ping inetutils
-// ver que hace con la flag -v

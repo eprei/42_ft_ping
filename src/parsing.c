@@ -52,40 +52,21 @@ int is_flag(const char *str) {
     return NOT_A_FLAG;
 }
 
-void print_option_need_argument(const int flag_value)
-{
-    char option[6];
-
-    switch (flag_value){
-        case TTL_FLAG:
-            strcpy(option, "--ttl");
-            break;
-        case W_FLAG:
-            strcpy(option, "W");
-            break;
-        case w_FLAG:
-            strcpy(option, "w");
-            break;
-        default:
-            strcpy(option, " ");
-            break;
-    }
-    fprintf(stderr, "ft_ping: option requires an argument -- '%s'\n\n", option);
-    fprintf(stderr, "%s\n", USAGE_MSG);
-}
-
 bool get_flag_value(const int *argc, char **argv, int *i, int *flag_value_store, const int flag) {
     if (argv[*i + 1] == NULL){
         print_option_need_argument(flag);
         return false;
     }
-    if ((*i + 1 < *argc && atoi(argv[*i + 1]) > 0) || *argv[*i + 1] == '0') {
-        *flag_value_store = atoi(argv[++*i]);
-    } else {
-        // TODO imprimir como el verdadero cuando --ttl=12312312312312312321 o --ttl=0
-        fprintf(stderr, "ft_ping: invalid argument: '%s': Numerical result out of range\n", argv[*i+1]);
+    if (*i + 1 < *argc && atol(argv[*i + 1]) < 1) {
+        fprintf(stderr, "ping: option value too small: %s\n", argv[*i+1]);
         return false;
     }
+    if (*i + 1 < *argc && atol(argv[*i + 1]) > INT_MAX){
+        fprintf(stderr, "ping: option value too big: %s\n", argv[*i+1]);
+        return false;
+    }
+    *flag_value_store = atoi(argv[++*i]);
+
     return true;
 }
 
@@ -98,8 +79,4 @@ bool get_ttl_value (t_ping *ping, char *arg) {
 
     fprintf(stderr, "ft_ping: invalid argument: '%d': out of range: 1 <= value <= 255\n", ping->flags.ttl_value);
     return false;
-}
-
-void print_usage() {
-    fprintf(stderr, "%s\n", USAGE_MSG);
 }
