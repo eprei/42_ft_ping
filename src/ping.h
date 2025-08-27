@@ -23,7 +23,7 @@
 
 # define NOT_A_FLAG 0
 # define V_FLAG 1
-# define T_FLAG 2
+# define TTL_FLAG 2
 # define W_FLAG 3
 # define w_FLAG 4
 # define H_FLAG 5
@@ -36,9 +36,40 @@
 # define RECV_BUFFER_SIZE 128
 
 # define UNKNOWN_HOST_MSG "%s: %s: Name or service not known\n"
+
+// ICMP messages
 # define HOST_UNREACHABLE "Destination Host Unreachable"
 # define NET_UNREACHABLE "Destination Net Unreachable"
 # define TTL_EXCEEDED "Time to live exceeded"
+# define PROTOCOL_UNREACHABLE "Protocol Unreachable"
+# define PORT_UNREACHABLE "Port Unreachable"
+# define FRAGMENTATION_NEEDED "Fragmentation needed and DF set"
+# define SOURCE_ROUTE_FAILED "Source route failed"
+# define NETWORK_UNKNOWN "Destination network unknown"
+# define HOST_UNKNOWN "Destination host unknown"
+# define HOST_ISOLATED "Source host isolated"
+# define NETWORK_PROHIBITED "Communication with destination network is administratively prohibited"
+# define HOST_PROHIBITED "Communication with destination host is administratively prohibited"
+# define NETWORK_UNREACHABLE_TOS "Destination network unreachable for type of service"
+# define HOST_UNREACHABLE_TOS "Destination host unreachable for type of service"
+# define PACKET_FILTERED "Communication administratively prohibited"
+# define PRECEDENCE_VIOLATION "Host precedence violation"
+# define PRECEDENCE_CUTOFF "Precedence cutoff in effect"
+# define SOURCE_QUENCH "Source quench"
+# define REDIRECT_NETWORK "Redirect datagram for the network"
+# define REDIRECT_HOST "Redirect datagram for the host"
+# define REDIRECT_NETWORK_TOS "Redirect datagram for the type of service and network"
+# define REDIRECT_HOST_TOS "Redirect datagram for the type of service and host"
+# define FRAGMENT_REASSEMBLY_TIME_EXCEEDED "Fragment reassembly time exceeded"
+# define PARAMETER_PROBLEM_POINTER "Pointer indicates the error"
+# define PARAMETER_PROBLEM_OPTION_MISSING "Missing a required option"
+# define PARAMETER_PROBLEM_BAD_LENGTH "Bad length"
+# define TIMESTAMP_REQUEST "Timestamp request"
+# define TIMESTAMP_REPLY "Timestamp reply"
+# define INFO_REQUEST "Information request"
+# define INFO_REPLY "Information reply"
+# define ADDRESS_MASK_REQUEST "Address mask request"
+# define ADDRESS_MASK_REPLY "Address mask reply"
 
 # define USAGE_MSG "Usage                                         \n\
   ft_ping [options] <destination>                                 \n\
@@ -60,8 +91,8 @@ struct ping_pkt {
 
 typedef struct s_flags {
     bool v_flag;        // Verbose output
-    bool t_flag;        // Time to live flag
-    int t_value;        // Time to live value
+    bool ttl_flag;      // Time to live flag
+    int ttl_value;      // Time to live value
     bool W_flag;        // Wait W_num seconds for a response flag
     int W_num;          // Wait W_num seconds for a response
     bool w_flag;        // Stop after w_num seconds flag
@@ -82,6 +113,7 @@ typedef struct s_ping {
     int socket_fd;
     struct sockaddr_in sa;
     t_rtt *rtt_list;
+    pid_t ping_id;
 } t_ping;
 
 
@@ -97,7 +129,7 @@ void send_ping(t_ping *pin);
 unsigned short checksum(void *b, int len);
 int is_flag(const char *str);
 bool get_flag_value(const int *argc, char **argv, int *i, int *flag_value_store, int flag);
-bool get_ttl_value (const int *argc, char **argv, int *i, t_ping *ping);
+bool get_ttl_value(t_ping *ping, char *arg);
 void print_usage();
 void print_usage_error();
 bool verify_usage(const t_ping *ping);
