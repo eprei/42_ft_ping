@@ -1,18 +1,5 @@
 #include "ping.h"
 
-void print_dest_unreach(char* sender_ip, const struct icmphdr* recv_hdr, const long unsigned int packet_received_size){
-    switch (recv_hdr->code){
-    case 1:
-        printf("%lu bytes from %s: %s\n", packet_received_size, sender_ip, HOST_UNREACHABLE);
-        break;
-    case 0:
-        printf("%lu bytes from %s: %s\n", packet_received_size, sender_ip, NET_UNREACHABLE);
-        break;
-    default:
-        break;
-    }
-}
-
 void print_first_line(t_ping* ping){
     if (ping->flags.v_flag){
         printf("PING %s (%s): %lu data bytes, id 0x%04x = %d\n", ping->destination_host, ping->ip,

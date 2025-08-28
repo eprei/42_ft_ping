@@ -151,7 +151,6 @@ void print_non_echo_icmp(const t_ping *ping, const struct iphdr *base_ip_hdr, co
 void print_custom_message(const struct icmphdr* icmp_hdr);
 void print_packet_content(const struct iphdr* base_ip_hdr);
 void print_first_line(t_ping* ping);
-void print_dest_unreach(char* sender_ip, const struct icmphdr* recv_hdr, const long unsigned int packet_received_size);
 void print_option_need_argument(const int flag_value);
 bool is_time_limit_reached(const t_ping *ping, const struct timespec time_start);
 long double get_elapsed_time_ms(const struct timespec *time_start, struct timespec *time_end);
