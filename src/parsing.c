@@ -19,14 +19,14 @@ static int is_flag(const char *str) {
     if (str[0] == '-' && str[1] == '-' && strncmp("--ttl", str, 5) != 0) {
         fprintf(stderr, "%s '%s'\n", MSG_ERROR_UNRECOGNIZED_OPTION, str);
         print_error(MSG_HELP);
-        return UNRECOGNIZED_FLAG;
+        exit(64);
     }
     if (str[0] == '-') {
-        fprintf(stderr, "%s '%s'\n", MSG_ERROR_INVALID_OPTION, &str[1]);
+        fprintf(stderr, "%s '%c'\n", MSG_ERROR_INVALID_OPTION, str[1]);
         print_error(MSG_HELP);
-        return UNRECOGNIZED_FLAG;
+        exit(64);
     }
-    return NOT_A_FLAG;
+    return 0;
 }
 
 static bool get_flag_value(const int *argc, char **argv, int *i, int *flag_value_store, const int flag) {
@@ -100,8 +100,6 @@ bool parsing(const int argc, char **argv, t_ping *ping) {
             case H_FLAG:
                 print_usage();
                 exit(0);
-            case UNRECOGNIZED_FLAG:
-                exit(64);
             default:
                 if (ping->destination_host == NULL) {
                     ping->destination_host = argv[i];

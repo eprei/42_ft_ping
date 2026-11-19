@@ -40,79 +40,57 @@ void print_custom_message(const struct icmphdr* icmp_hdr) {
     switch (icmp_hdr->type){
         case ICMP_DEST_UNREACH:
             switch (icmp_hdr->code){
-            case ICMP_NET_UNREACH:
-                    printf("%s\n", NET_UNREACHABLE);
-                    break;
-            case ICMP_HOST_UNREACH:
-                    printf("%s\n", HOST_UNREACHABLE);
-                    break;
-            case ICMP_PROT_UNREACH:
-                    printf("%s\n", PROTOCOL_UNREACHABLE);
-                    break;
-            case ICMP_PORT_UNREACH:
-                    printf("%s\n", PORT_UNREACHABLE);
-                    break;
-            case ICMP_FRAG_NEEDED:
-                    printf("%s\n", FRAGMENTATION_NEEDED);
-                    break;
-            case ICMP_SR_FAILED:
-                    printf("%s\n", SOURCE_ROUTE_FAILED);
-                    break;
-            case ICMP_NET_UNKNOWN:
-                    printf("%s\n", NETWORK_UNKNOWN);
-                    break;
-            case ICMP_HOST_UNKNOWN:
-                    printf("%s\n", HOST_UNKNOWN);
-                    break;
-            case ICMP_HOST_ISOLATED:
-                    printf("%s\n", HOST_ISOLATED);
-                    break;
-            case ICMP_NET_ANO:
-                    printf("%s\n", NETWORK_PROHIBITED);
-                    break;
-            case ICMP_HOST_ANO:
-                    printf("%s\n", HOST_PROHIBITED);
-                    break;
-            case ICMP_NET_UNR_TOS:
-                    printf("%s\n", NETWORK_UNREACHABLE_TOS);
-                    break;
-            case ICMP_HOST_UNR_TOS:
-                    printf("%s\n", HOST_UNREACHABLE_TOS);
-                    break;
-            case ICMP_PKT_FILTERED:
-                    printf("%s\n", PACKET_FILTERED);
-                    break;
-            case ICMP_PREC_VIOLATION:
-                    printf("%s\n", PRECEDENCE_VIOLATION);
-                    break;
-            case ICMP_PREC_CUTOFF:
-                    printf("%s\n", PRECEDENCE_CUTOFF);
-                    break;
-            default:
-                    printf("Destination Unreachable (code %d)\n", icmp_hdr->code);
-                    break;
-            }
-            break;
-        case ICMP_SOURCE_QUENCH:
-            printf("%s\n", SOURCE_QUENCH);
-            break;
-        case ICMP_REDIRECT:
-            switch (icmp_hdr->code){
-            case ICMP_REDIR_NET:
-                    printf("%s\n", REDIRECT_NETWORK);
-                    break;
-            case ICMP_REDIR_HOST:
-                    printf("%s\n", REDIRECT_HOST);
-                    break;
-            case ICMP_REDIR_NETTOS:
-                    printf("%s\n", REDIRECT_NETWORK_TOS);
-                    break;
-            case ICMP_REDIR_HOSTTOS:
-                    printf("%s\n", REDIRECT_HOST_TOS);
-                    break;
-            default:
-                    printf("Redirect (code %d)\n", icmp_hdr->code);
-                    break;
+                case ICMP_NET_UNREACH:
+                        printf("%s\n", NET_UNREACHABLE);
+                        break;
+                case ICMP_HOST_UNREACH:
+                        printf("%s\n", HOST_UNREACHABLE);
+                        break;
+                case ICMP_PROT_UNREACH:
+                        printf("%s\n", PROTOCOL_UNREACHABLE);
+                        break;
+                case ICMP_PORT_UNREACH:
+                        printf("%s\n", PORT_UNREACHABLE);
+                        break;
+                case ICMP_FRAG_NEEDED:
+                        printf("%s\n", FRAGMENTATION_NEEDED);
+                        break;
+                case ICMP_SR_FAILED:
+                        printf("%s\n", SOURCE_ROUTE_FAILED);
+                        break;
+                case ICMP_NET_UNKNOWN:
+                        printf("%s\n", NETWORK_UNKNOWN);
+                        break;
+                case ICMP_HOST_UNKNOWN:
+                        printf("%s\n", HOST_UNKNOWN);
+                        break;
+                case ICMP_HOST_ISOLATED:
+                        printf("%s\n", HOST_ISOLATED);
+                        break;
+                case ICMP_NET_ANO:
+                        printf("%s\n", NETWORK_PROHIBITED);
+                        break;
+                case ICMP_HOST_ANO:
+                        printf("%s\n", HOST_PROHIBITED);
+                        break;
+                case ICMP_NET_UNR_TOS:
+                        printf("%s\n", NETWORK_UNREACHABLE_TOS);
+                        break;
+                case ICMP_HOST_UNR_TOS:
+                        printf("%s\n", HOST_UNREACHABLE_TOS);
+                        break;
+                case ICMP_PKT_FILTERED:
+                        printf("%s\n", PACKET_FILTERED);
+                        break;
+                case ICMP_PREC_VIOLATION:
+                        printf("%s\n", PRECEDENCE_VIOLATION);
+                        break;
+                case ICMP_PREC_CUTOFF:
+                        printf("%s\n", PRECEDENCE_CUTOFF);
+                        break;
+                default:
+                        printf("Destination Unreachable (code %d)\n", icmp_hdr->code);
+                        break;
             }
             break;
         case ICMP_TIME_EXCEEDED:
@@ -127,27 +105,6 @@ void print_custom_message(const struct icmphdr* icmp_hdr) {
                     printf("Time Exceeded (code %d)\n", icmp_hdr->code);
                     break;
             }
-            break;
-        case ICMP_PARAMETERPROB:
-                printf("Parameter Problem (code %d)\n", icmp_hdr->code);
-                break;
-        case ICMP_TIMESTAMP:
-            printf("%s\n", TIMESTAMP_REQUEST);
-            break;
-        case ICMP_TIMESTAMPREPLY:
-            printf("%s\n", TIMESTAMP_REPLY);
-            break;
-        case ICMP_INFO_REQUEST:
-            printf("%s\n", INFO_REQUEST);
-            break;
-        case ICMP_INFO_REPLY:
-            printf("%s\n", INFO_REPLY);
-            break;
-        case ICMP_ADDRESS:
-            printf("%s\n", ADDRESS_MASK_REQUEST);
-            break;
-        case ICMP_ADDRESSREPLY:
-            printf("%s\n", ADDRESS_MASK_REPLY);
             break;
         default:
             printf("ICMP type %d, code %d\n", icmp_hdr->type, icmp_hdr->code);

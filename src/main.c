@@ -1,9 +1,8 @@
 #include "ping.h"
 
-static void fill_config(t_ping *ping, char *binary_name) {
-    ping->binary_name = binary_name;
-    ping->sa.sin_family = AF_INET;
-    ping->sa.sin_port = htons(PORT_NO);
+static void fill_config(t_ping *config) {
+    config->sa.sin_family = AF_INET;
+    config->sa.sin_port = htons(PORT_NO);
 }
 
 static bool is_root(void) {
@@ -38,7 +37,7 @@ int main(const int argc, char **argv) {
     signal(SIGINT, signal_handler);
 
     t_ping config = {0};
-    fill_config(&config, argv[0]);
+    fill_config(&config);
 
     if (!is_root() ||
         !parsing(argc, argv, &config) ||
@@ -47,5 +46,5 @@ int main(const int argc, char **argv) {
         return 1;
     }
 
-    return ft_ping(&config);
+    return ping(&config);
 }

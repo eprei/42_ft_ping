@@ -5,7 +5,7 @@ volatile sig_atomic_t loop_running = 1;
 static void ping_loop(t_ping *ping) {
     const int ttl = ping->flags.ttl_value != 0 ? ping->flags.ttl_value : DEFAULT_TTL;
     int msg_count = 0, addr_len, msg_received_count = 0, errors = 0;
-    char recv_buffer[RECV_BUFFER_SIZE];
+    char recv_buffer[BUF_SIZE];
     struct ping_pkt packet;
     struct sockaddr_in recv_addr;
     struct timespec time_start_packet, time_end_packet, time_start_total;
@@ -34,7 +34,6 @@ static void ping_loop(t_ping *ping) {
         clock_gettime(CLOCK_MONOTONIC, &time_start_packet);
         // Send packet
         if (sendto(ping->socket_fd, &packet, sizeof(packet), 0, (struct sockaddr*)&ping->sa, sizeof(ping->sa)) <= 0) {
-            // fprintf(stderr, "Packet Sending Failed!\n");
             packet_sent = false;
         }
 
@@ -78,13 +77,12 @@ static void ping_loop(t_ping *ping) {
         usleep(SLEEP_RATE);
     }
 
-    // const long double total_elapsed_time = get_elapsed_time_ms(&time_start_total, &time_end_total);
     print_stats(ping, msg_count, msg_received_count, errors);
 }
 
-int ft_ping(t_ping *ping) {
-    if (convert_address(ping) || dns_lookup(ping)){
-        ping_loop(ping);
+int ping(t_ping *config) {
+    if (convert_address(config) || dns_lookup(config)){
+        ping_loop(config);
         return 0;
     }
     return 1;

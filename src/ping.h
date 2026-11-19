@@ -5,11 +5,9 @@
 # include <string.h>
 # include <stdio.h>
 # include <stdlib.h>
-# include <ctype.h>
 # include <sys/socket.h>
 # include <time.h>
 # include <netdb.h>
-# include <sys/socket.h>
 # include <netinet/in.h>
 # include <netinet/ip_icmp.h>
 # include <arpa/inet.h>
@@ -21,22 +19,17 @@
 # include <math.h>
 # include <errno.h>
 
-# define NOT_A_FLAG 0
 # define V_FLAG 1
 # define TTL_FLAG 2
 # define W_FLAG 3
 # define w_FLAG 4
 # define H_FLAG 5
-# define UNRECOGNIZED_FLAG 6
-
 # define PING_PKT_S 64              // ping packet size
 # define PORT_NO 0                  // no port
 # define SLEEP_RATE 1000000         // ping sleep rate (in microseconds)
 # define RECV_TIMEOUT 4             // timeout for receiving packets (in seconds)
 # define DEFAULT_TTL 64
-# define RECV_BUFFER_SIZE 128
-
-# define UNKNOWN_HOST_MSG "ft_ping: unknown host"
+# define BUF_SIZE 128
 
 // ICMP messages
 # define HOST_UNREACHABLE "Destination Host Unreachable"
@@ -56,22 +49,15 @@
 # define PACKET_FILTERED "Communication administratively prohibited"
 # define PRECEDENCE_VIOLATION "Host precedence violation"
 # define PRECEDENCE_CUTOFF "Precedence cutoff in effect"
-# define SOURCE_QUENCH "Source quench"
-# define REDIRECT_NETWORK "Redirect datagram for the network"
-# define REDIRECT_HOST "Redirect datagram for the host"
-# define REDIRECT_NETWORK_TOS "Redirect datagram for the type of service and network"
-# define REDIRECT_HOST_TOS "Redirect datagram for the type of service and host"
 # define FRAGMENT_REASSEMBLY_TIME_EXCEEDED "Fragment reassembly time exceeded"
-# define PARAMETER_PROBLEM_POINTER "Pointer indicates the error"
-# define PARAMETER_PROBLEM_OPTION_MISSING "Missing a required option"
-# define PARAMETER_PROBLEM_BAD_LENGTH "Bad length"
-# define TIMESTAMP_REQUEST "Timestamp request"
-# define TIMESTAMP_REPLY "Timestamp reply"
-# define INFO_REQUEST "Information request"
-# define INFO_REPLY "Information reply"
-# define ADDRESS_MASK_REQUEST "Address mask request"
-# define ADDRESS_MASK_REPLY "Address mask reply"
 
+// Custom Messages
+# define MSG_UNKNOWN_HOST "ft_ping: unknown host"
+# define MSG_HELP "Try 'ft_ping -?' or 'ft_ping -h' for more information."
+# define MSG_ERROR_MISSING_HOST "ft_ping: missing host operand"
+# define MSG_ERROR_UNRECOGNIZED_OPTION "ft_ping: unrecognized option"
+# define MSG_ERROR_INVALID_OPTION "ft_ping: invalid option --"
+# define MSG_INVALID_VALUE "ft_ping: invalid value"
 # define USAGE_MSG "Usage: ft_ping [OPTION...] HOST ...           \n\
 Send ICMP ECHO_REQUEST packets to network hosts.                  \n\
                                                                   \n\
@@ -83,13 +69,8 @@ Options:                                                          \n\
   --ttl=N                    specify N as time-to-live            \n\
   -w <deadline>              reply wait <deadline> in seconds     \n\
   -W <timeout>               time to wait for response            "
-// TODO Improve `sudo ./ft_ping 10.0.2.99 -w 1` to cut command in 1 second
 
-# define MSG_HELP "Try 'ft_ping -?' or 'ft_ping -h' for more information."
-# define MSG_ERROR_MISSING_HOST "ft_ping: missing host operand"
-# define MSG_ERROR_UNRECOGNIZED_OPTION "ft_ping: unrecognized option"
-# define MSG_ERROR_INVALID_OPTION "ft_ping: invalid option --"
-# define MSG_INVALID_VALUE "ft_ping: invalid value"
+// TODO Improve `sudo ./ft_ping 10.0.2.99 -w 1` to cut command in 1 second
 
 struct ping_pkt {
     struct icmphdr icmp_header;
@@ -97,14 +78,13 @@ struct ping_pkt {
 };
 
 typedef struct s_flags {
-    bool v_flag;        // Verbose output
-    bool ttl_flag;      // Time to live flag
-    int ttl_value;      // Time to live value
-    bool W_flag;        // Wait W_num seconds for a response flag
-    int W_num;          // Wait W_num seconds for a response value
-    bool w_flag;        // Stop after w_num seconds flag
-    int w_num;          // Stop after w_num seconds value
-    bool H_flag;        // Help flag
+    bool v_flag;                  // Verbose output
+    bool ttl_flag;                // Time to live flag
+    int ttl_value;                // Time to live value
+    bool W_flag;                  // Wait W_num seconds for a response flag
+    int W_num;                    // Wait W_num seconds for a response value
+    bool w_flag;                  // Stop after w_num seconds flag
+    int w_num;                    // Stop after w_num seconds value
 } t_flags;
 
 typedef struct s_rtt {
@@ -113,7 +93,6 @@ typedef struct s_rtt {
 } t_rtt;
 
 typedef struct s_ping {
-    char *binary_name;
     t_flags flags;
     char *destination_host;
     char ip[INET_ADDRSTRLEN * sizeof(char)];
@@ -123,7 +102,7 @@ typedef struct s_ping {
     pid_t ping_id;
 } t_ping;
 
-int ft_ping(t_ping *ping);
+int ping(t_ping *config);
 bool parsing(int argc, char *argv[], t_ping *ping);
 void signal_handler(int signal);
 bool convert_address(t_ping *ping);

@@ -20,7 +20,7 @@ bool convert_address(t_ping *ping) {
 bool dns_lookup(t_ping *ping) {
     struct hostent *host_entity;
     if ((host_entity = gethostbyname(ping->destination_host)) == NULL) {
-        fprintf(stderr, "%s\n", UNKNOWN_HOST_MSG);
+        fprintf(stderr, "%s\n", MSG_UNKNOWN_HOST);
         return false;
     }
 
