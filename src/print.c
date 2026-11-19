@@ -1,9 +1,9 @@
 #include "ping.h"
 
-void print_first_line(t_ping* ping){
+void print_first_line(t_config* ping){
     if (ping->flags.v_flag){
         printf("PING %s (%s): %lu data bytes, id 0x%04x = %d\n", ping->destination_host, ping->ip,
-               PING_PKT_S - sizeof(struct icmphdr), ping->ping_id, ping->ping_id);
+               PING_PKT_S - sizeof(struct icmphdr), ping->pid, ping->pid);
     } else {
        printf("PING %s (%s): %lu data bytes\n", ping->destination_host, ping->ip, PING_PKT_S - sizeof(struct icmphdr));
     }
@@ -112,7 +112,7 @@ void print_custom_message(const struct icmphdr* icmp_hdr) {
     }
 }
 
-void print_non_echo_icmp(const t_ping *ping, const struct iphdr *base_ip_hdr, const struct icmphdr *icmp_hdr, char* sender_ip, const unsigned long received_packet_size){
+void print_non_echo_icmp(const t_config *ping, const struct iphdr *base_ip_hdr, const struct icmphdr *icmp_hdr, char* sender_ip, const unsigned long received_packet_size){
     printf("%lu bytes from %s: ", received_packet_size, sender_ip);
     print_custom_message(icmp_hdr);
     if (ping->flags.v_flag) {
@@ -120,8 +120,8 @@ void print_non_echo_icmp(const t_ping *ping, const struct iphdr *base_ip_hdr, co
     }
 }
 
-void print_stats(const t_ping *ping, const int msg_count, const int msg_received_count, const int errors) {
-    const double safe_divisor = msg_count > 0 ? msg_count : 1;
+void print_stats(const t_config *ping, const int msgs_sent, const int msgs_received, const int errors) {
+    const double safe_divisor = msgs_sent > 0 ? msgs_sent : 1;
     char error_str[25] = "";
 
     if (errors > 0){
@@ -129,9 +129,9 @@ void print_stats(const t_ping *ping, const int msg_count, const int msg_received
     }
 
     printf("--- %s ping statistics ---\n", ping->destination_host);
-    printf("%d packets transmitted, %d packets received,%s %.0f%% packet loss\n", msg_count, msg_received_count,
-           error_str, ((msg_count - msg_received_count) / safe_divisor) * 100.0);
-    if (msg_received_count > 0){
+    printf("%d packets transmitted, %d packets received,%s %.0f%% packet loss\n", msgs_sent, msgs_received,
+           error_str, (msgs_sent - msgs_received) / safe_divisor * 100.0);
+    if (msgs_received > 0){
         printf("round-trip min/avg/max/stddev = %.3Lf/%.3Lf/%.3Lf/%.3Lf ms\n", get_min_rtt(ping->rtt_list),
                get_avg_rtt(ping->rtt_list), get_max_rtt(ping->rtt_list), get_mdev_rtt(ping->rtt_list));
     }
@@ -166,3 +166,10 @@ void print_usage(void) {
 void print_error(char *error_msg){
     fprintf(stderr, "%s\n", error_msg);
 }
+
+//TODO resolve
+// sudo ./ft_ping 8.8.8.8 --ttl
+// ft_ping: invalid option -- '-'
+// MUST BE
+// ping 8.8.8.8 --ttl
+// ping: option '--ttl' requires an argument

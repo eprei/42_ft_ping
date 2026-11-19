@@ -1,6 +1,6 @@
 NAME = ft_ping
 
-SRCS = src/main.c src/ping.c src/parsing.c src/signal_handler.c src/rtt.c src/net_utils.c src/error.c src/print.c src/time.c src/packet_utils.c
+SRCS = src/main.c src/ping.c src/parsing.c src/signal_handler.c src/rtt.c src/net_utils.c src/print.c src/time.c src/packet_utils.c
 OBJ = $(SRCS:.c=.o)
 
 CC = gcc

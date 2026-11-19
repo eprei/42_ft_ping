@@ -27,7 +27,7 @@
 # define PING_PKT_S 64              // ping packet size
 # define PORT_NO 0                  // no port
 # define SLEEP_RATE 1000000         // ping sleep rate (in microseconds)
-# define RECV_TIMEOUT 4             // timeout for receiving packets (in seconds)
+# define TIMEOUT_DEFAULT 4          // timeout for receiving packets (in seconds)
 # define DEFAULT_TTL 64
 # define BUF_SIZE 128
 
@@ -70,8 +70,6 @@ Options:                                                          \n\
   -w <deadline>              reply wait <deadline> in seconds     \n\
   -W <timeout>               time to wait for response            "
 
-// TODO Improve `sudo ./ft_ping 10.0.2.99 -w 1` to cut command in 1 second
-
 struct ping_pkt {
     struct icmphdr icmp_header;
     char msg[PING_PKT_S - sizeof(struct icmphdr)];
@@ -79,7 +77,7 @@ struct ping_pkt {
 
 typedef struct s_flags {
     bool v_flag;                  // Verbose output
-    bool ttl_flag;                // Time to live flag
+    // bool ttl_flag;                // Time to live flag
     int ttl_value;                // Time to live value
     bool W_flag;                  // Wait W_num seconds for a response flag
     int W_num;                    // Wait W_num seconds for a response value
@@ -92,23 +90,22 @@ typedef struct s_rtt {
     struct s_rtt *next;
 } t_rtt;
 
-typedef struct s_ping {
+typedef struct s_config {
     t_flags flags;
     char *destination_host;
     char ip[INET_ADDRSTRLEN * sizeof(char)];
     int socket_fd;
     struct sockaddr_in sa;
     t_rtt *rtt_list;
-    pid_t ping_id;
-} t_ping;
+    pid_t pid;
+} t_config;
 
-int ping(t_ping *config);
-bool parsing(int argc, char *argv[], t_ping *ping);
+int ping(t_config *config);
+bool parsing(int argc, char *argv[], t_config *ping);
 void signal_handler(int signal);
-bool convert_address(t_ping *ping);
-bool dns_lookup(t_ping *ping);
-void fill_packet(int *msg_count, struct ping_pkt *packet);
-void exit_error(char *str, int ret_value);
+bool convert_address(t_config *ping);
+bool dns_lookup(t_config *ping);
+void fill_packet(int *msg_count, struct ping_pkt *packet, pid_t pid);
 
 void process_rtt(t_rtt **rtt_list, long double rtt);
 long double get_last_rtt(const t_rtt *rtt_list);
@@ -119,16 +116,16 @@ long double get_mdev_rtt(t_rtt *rtt_list);
 void free_rtt_list(t_rtt *rtt_node);
 
 long double get_elapsed_time_ms(const struct timespec *time_start, struct timespec *time_end);
-void get_timeout(const t_ping *ping, struct timeval *timeout);
-bool is_time_limit_reached(const t_ping *ping, struct timespec time_start);
+void get_timeout(const t_config *config, struct timeval *timeout);
+bool is_time_limit_reached(const t_config *ping, struct timespec time_start);
 
 void print_usage(void);
 void print_error(char *error_msg);
-void print_stats(const t_ping *ping, int msg_count, int msg_received_count, int errors);
-void print_non_echo_icmp(const t_ping *ping, const struct iphdr *base_ip_hdr, const struct icmphdr *icmp_hdr, char* sender_ip, const unsigned long received_packet_size);
+void print_stats(const t_config *ping, int msgs_sent, int msgs_received, int errors);
+void print_non_echo_icmp(const t_config *ping, const struct iphdr *base_ip_hdr, const struct icmphdr *icmp_hdr, char* sender_ip, const unsigned long received_packet_size);
 void print_custom_message(const struct icmphdr* icmp_hdr);
 void print_packet_content(const struct iphdr* base_ip_hdr);
-void print_first_line(t_ping* ping);
+void print_first_line(t_config* ping);
 void print_option_need_argument(int flag_value);
 
 #endif

@@ -1,8 +1,9 @@
 #include "ping.h"
 
-static void fill_config(t_ping *config) {
+static void fill_config(t_config *config) {
     config->sa.sin_family = AF_INET;
     config->sa.sin_port = htons(PORT_NO);
+    config->pid = getpid();
 }
 
 static bool is_root(void) {
@@ -13,7 +14,7 @@ static bool is_root(void) {
     return true;
 }
 
-static bool create_raw_socket(t_ping *ping){
+static bool create_raw_socket(t_config *ping){
     ping->socket_fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 
     if (ping->socket_fd < 0) {
@@ -23,7 +24,7 @@ static bool create_raw_socket(t_ping *ping){
     return true;
 }
 
-static bool verify_usage(const t_ping *ping) {
+static bool verify_usage(const t_config *ping) {
     if ( ping->destination_host == NULL) {
         print_error(MSG_ERROR_MISSING_HOST);
         print_error(MSG_HELP);
@@ -36,7 +37,7 @@ int main(const int argc, char **argv) {
 
     signal(SIGINT, signal_handler);
 
-    t_ping config = {0};
+    t_config config = {0};
     fill_config(&config);
 
     if (!is_root() ||

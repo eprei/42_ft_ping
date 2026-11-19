@@ -1,6 +1,6 @@
 #include "ping.h"
 
-bool is_time_limit_reached(const t_ping *ping, const struct timespec time_start) {
+bool is_time_limit_reached(const t_config *ping, const struct timespec time_start) {
     struct timespec time_end;
 
     if (ping->flags.w_flag){
@@ -16,7 +16,7 @@ long double get_elapsed_time_ms(const struct timespec *time_start, struct timesp
     return total_elapsed_time_ms;
 }
 
-void get_timeout(const t_ping *ping, struct timeval *timeout) {
-    timeout->tv_sec = ping->flags.W_flag == true ? ping->flags.W_num: RECV_TIMEOUT;
+void get_timeout(const t_config *config, struct timeval *timeout) {
+    timeout->tv_sec = config->flags.W_flag == true ? config->flags.W_num: TIMEOUT_DEFAULT;
     timeout->tv_usec = 0;
 }

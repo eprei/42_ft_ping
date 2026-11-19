@@ -47,7 +47,7 @@ static bool get_flag_value(const int *argc, char **argv, int *i, int *flag_value
     return true;
 }
 
-static bool get_ttl_value (t_ping *ping, const char *ttl_arg) {
+static bool get_ttl_value (t_config *ping, const char *ttl_arg) {
     if (ttl_arg[6] == '\0') {
         fprintf(stderr, "ft_ping: option value too small: \n");
         return false;
@@ -73,7 +73,7 @@ static bool get_ttl_value (t_ping *ping, const char *ttl_arg) {
     return true;
 }
 
-bool parsing(const int argc, char **argv, t_ping *ping) {
+bool parsing(const int argc, char **argv, t_config *ping) {
     if (argc < 2) {
         print_error(MSG_ERROR_MISSING_HOST);
         print_error(MSG_HELP);
@@ -86,7 +86,7 @@ bool parsing(const int argc, char **argv, t_ping *ping) {
                 ping->flags.v_flag = true;
                 break;
             case TTL_FLAG:
-                ping->flags.ttl_flag = true;
+                // ping->flags.ttl_flag = true;
                 if (!get_ttl_value(ping, argv[i])) return false;
                 break;
             case W_FLAG:

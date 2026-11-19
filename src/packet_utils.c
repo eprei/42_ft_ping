@@ -16,11 +16,11 @@ static unsigned short checksum(void *b, int len) {
     return result;
 }
 
-void fill_packet(int *msg_count, struct ping_pkt *packet) {
+void fill_packet(int *msg_count, struct ping_pkt *packet, pid_t pid) {
     int i;
     bzero(packet, sizeof(*packet));
     packet->icmp_header.type = ICMP_ECHO;
-    packet->icmp_header.un.echo.id = getpid();
+    packet->icmp_header.un.echo.id = pid;
 
     for (i = 0; i < (int) sizeof(packet->msg) - 1; i++)
         packet->msg[i] = i + '0';

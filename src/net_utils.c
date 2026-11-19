@@ -1,6 +1,6 @@
 #include "ping.h"
 
-bool convert_address(t_ping *ping) {
+bool convert_address(t_config *ping) {
     const int convert_address_result = inet_pton(AF_INET, ping->destination_host, &ping->sa.sin_addr);
 
     if (convert_address_result <= 0) {
@@ -17,7 +17,7 @@ bool convert_address(t_ping *ping) {
     return true;
 }
 
-bool dns_lookup(t_ping *ping) {
+bool dns_lookup(t_config *ping) {
     struct hostent *host_entity;
     if ((host_entity = gethostbyname(ping->destination_host)) == NULL) {
         fprintf(stderr, "%s\n", MSG_UNKNOWN_HOST);

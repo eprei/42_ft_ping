@@ -8,11 +8,12 @@ void free_rtt_list(t_rtt *rtt_node) {
     }
 }
 
-void process_rtt(t_rtt **rtt_list, long double rtt){
+void process_rtt(t_rtt **rtt_list, const long double rtt){
     t_rtt *new_rtt_node = malloc(sizeof(t_rtt));
 
     if (new_rtt_node == NULL){
-        exit_error("malloc error while adding new rtt_value to the list", 1);
+        fprintf(stderr, "Error: malloc error while adding new rtt_value to the list\n");
+        exit(1);
     }
 
     new_rtt_node->rtt_value = rtt;
