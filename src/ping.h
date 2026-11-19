@@ -6,6 +6,7 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <sys/socket.h>
+# include <sys/time.h>
 # include <time.h>
 # include <netdb.h>
 # include <netinet/in.h>
@@ -19,11 +20,11 @@
 # include <math.h>
 # include <errno.h>
 
-# define V_FLAG 1
-# define TTL_FLAG 2
-# define W_FLAG 3
-# define w_FLAG 4
-# define H_FLAG 5
+# define IS_V_FLAG 1
+# define IS_TTL_FLAG 2
+# define IS_W_FLAG 3
+# define IS_w_FLAG 4
+# define IS_H_FLAG 5
 # define PING_PKT_S 64              // ping packet size
 # define PORT_NO 0                  // no port
 # define SLEEP_RATE 1000000         // ping sleep rate (in microseconds)
@@ -75,9 +76,11 @@ struct ping_pkt {
     char msg[PING_PKT_S - sizeof(struct icmphdr)];
 };
 
+// To test W
+// sudo iptables -I INPUT -p icmp --icmp-type echo-reply -j DROP
+// sudo iptables -D INPUT -p icmp --icmp-type echo-reply -j DROP
 typedef struct s_flags {
     bool v_flag;                  // Verbose output
-    // bool ttl_flag;                // Time to live flag
     int ttl_value;                // Time to live value
     bool W_flag;                  // Wait W_num seconds for a response flag
     int W_num;                    // Wait W_num seconds for a response value
@@ -101,7 +104,7 @@ typedef struct s_config {
 } t_config;
 
 int ping(t_config *config);
-bool parsing(int argc, char *argv[], t_config *ping);
+bool parsing(int argc, char *argv[], t_config *config);
 void signal_handler(int signal);
 bool convert_address(t_config *ping);
 bool dns_lookup(t_config *ping);
@@ -116,6 +119,7 @@ long double get_mdev_rtt(t_rtt *rtt_list);
 void free_rtt_list(t_rtt *rtt_node);
 
 long double get_elapsed_time_ms(const struct timespec *time_start, struct timespec *time_end);
+long double timeval_to_rtt(const struct timeval *result);
 void get_timeout(const t_config *config, struct timeval *timeout);
 bool is_time_limit_reached(const t_config *ping, struct timespec time_start);
 
@@ -123,7 +127,7 @@ void print_usage(void);
 void print_error(char *error_msg);
 void print_stats(const t_config *ping, int msgs_sent, int msgs_received, int errors);
 void print_non_echo_icmp(const t_config *ping, const struct iphdr *base_ip_hdr, const struct icmphdr *icmp_hdr, char* sender_ip, const unsigned long received_packet_size);
-void print_custom_message(const struct icmphdr* icmp_hdr);
+void print_icmp_message(const struct icmphdr* icmp_hdr);
 void print_packet_content(const struct iphdr* base_ip_hdr);
 void print_first_line(t_config* ping);
 void print_option_need_argument(int flag_value);

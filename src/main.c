@@ -1,6 +1,6 @@
 #include "ping.h"
 
-static void fill_config(t_config *config) {
+static void init_config(t_config *config) {
     config->sa.sin_family = AF_INET;
     config->sa.sin_port = htons(PORT_NO);
     config->pid = getpid();
@@ -24,8 +24,8 @@ static bool create_raw_socket(t_config *ping){
     return true;
 }
 
-static bool verify_usage(const t_config *ping) {
-    if ( ping->destination_host == NULL) {
+static bool check_config(const t_config *config) {
+    if (config->destination_host == NULL) {
         print_error(MSG_ERROR_MISSING_HOST);
         print_error(MSG_HELP);
         return false;
@@ -38,11 +38,11 @@ int main(const int argc, char **argv) {
     signal(SIGINT, signal_handler);
 
     t_config config = {0};
-    fill_config(&config);
+    init_config(&config);
 
     if (!is_root() ||
         !parsing(argc, argv, &config) ||
-        !verify_usage(&config) ||
+        !check_config(&config) ||
         !create_raw_socket(&config)) {
         return 1;
     }

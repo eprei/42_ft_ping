@@ -36,7 +36,7 @@ void print_packet_content(const struct iphdr* base_ip_hdr){
            original_icmp->un.echo.id, original_icmp->un.echo.sequence);
 }
 
-void print_custom_message(const struct icmphdr* icmp_hdr) {
+void print_icmp_message(const struct icmphdr* icmp_hdr) {
     switch (icmp_hdr->type){
         case ICMP_DEST_UNREACH:
             switch (icmp_hdr->code){
@@ -114,7 +114,7 @@ void print_custom_message(const struct icmphdr* icmp_hdr) {
 
 void print_non_echo_icmp(const t_config *ping, const struct iphdr *base_ip_hdr, const struct icmphdr *icmp_hdr, char* sender_ip, const unsigned long received_packet_size){
     printf("%lu bytes from %s: ", received_packet_size, sender_ip);
-    print_custom_message(icmp_hdr);
+    print_icmp_message(icmp_hdr);
     if (ping->flags.v_flag) {
         print_packet_content(base_ip_hdr);
     }
@@ -142,13 +142,13 @@ void print_option_need_argument(const int flag_value){
     char option[6];
 
     switch (flag_value){
-        case TTL_FLAG:
+        case IS_TTL_FLAG:
             strcpy(option, "--ttl");
             break;
-        case W_FLAG:
+        case IS_W_FLAG:
             strcpy(option, "W");
             break;
-        case w_FLAG:
+        case IS_w_FLAG:
             strcpy(option, "w");
             break;
         default:
@@ -166,10 +166,3 @@ void print_usage(void) {
 void print_error(char *error_msg){
     fprintf(stderr, "%s\n", error_msg);
 }
-
-//TODO resolve
-// sudo ./ft_ping 8.8.8.8 --ttl
-// ft_ping: invalid option -- '-'
-// MUST BE
-// ping 8.8.8.8 --ttl
-// ping: option '--ttl' requires an argument
