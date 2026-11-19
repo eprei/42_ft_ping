@@ -23,7 +23,7 @@ void print_packet_content(const struct iphdr* base_ip_hdr){
 
     printf("IP Hdr Dump:\n ");
     for (int i = 0; i < original_ip->ihl * 4; i += 2) {
-        printf(" %02x%02x", byte[i], byte[i+1]);
+        printf("%02x%02x ", byte[i], byte[i+1]);
     }
 
     printf("\nVr HL TOS  Len   ID Flg  off TTL Pro  cks      Src\tDst\tData\n");
@@ -181,8 +181,7 @@ void print_stats(const t_ping *ping, const int msg_count, const int msg_received
     free_rtt_list(ping->rtt_list);
 }
 
-void print_option_need_argument(const int flag_value)
-{
+void print_option_need_argument(const int flag_value){
     char option[6];
 
     switch (flag_value){
@@ -199,14 +198,14 @@ void print_option_need_argument(const int flag_value)
             strcpy(option, " ");
             break;
     }
-    fprintf(stderr, "ft_ping: option requires an argument -- '%s'\n\n", option);
+    fprintf(stderr, "ft_ping: option requires an argument -- '%s'\n", option);
+    fprintf(stderr, "%s\n", MSG_HELP);
+}
+
+void print_usage(void) {
     fprintf(stderr, "%s\n", USAGE_MSG);
 }
 
-void print_usage() {
-    fprintf(stderr, "%s\n", USAGE_MSG);
-}
-
-void print_usage_error(){
-    fprintf(stderr, "%s\n", USAGE_ERROR);
+void print_error(char *error_msg){
+    fprintf(stderr, "%s\n", error_msg);
 }

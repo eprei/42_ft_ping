@@ -27,6 +27,7 @@
 # define W_FLAG 3
 # define w_FLAG 4
 # define H_FLAG 5
+# define UNRECOGNIZED_FLAG 6
 
 # define PING_PKT_S 64              // ping packet size
 # define PORT_NO 0                  // no port
@@ -35,7 +36,7 @@
 # define DEFAULT_TTL 64
 # define RECV_BUFFER_SIZE 128
 
-# define UNKNOWN_HOST_MSG "%s: %s: Name or service not known\n"
+# define UNKNOWN_HOST_MSG "ft_ping: unknown host"
 
 // ICMP messages
 # define HOST_UNREACHABLE "Destination Host Unreachable"
@@ -71,18 +72,24 @@
 # define ADDRESS_MASK_REQUEST "Address mask request"
 # define ADDRESS_MASK_REPLY "Address mask reply"
 
-# define USAGE_MSG "Usage                                         \n\
-  ft_ping [options] <destination>                                 \n\
+# define USAGE_MSG "Usage: ft_ping [OPTION...] HOST ...           \n\
+Send ICMP ECHO_REQUEST packets to network hosts.                  \n\
                                                                   \n\
 Options:                                                          \n\
   <destination>              dns name or ip address               \n\
+  -?                         print help and exit                  \n\
   -h                         print help and exit                  \n\
-  -t <time to live>          define time to live                  \n\
   -v                         verbose output                       \n\
+  --ttl=N                    specify N as time-to-live            \n\
   -w <deadline>              reply wait <deadline> in seconds     \n\
   -W <timeout>               time to wait for response            "
+// TODO Improve `sudo ./ft_ping 10.0.2.99 -w 1` to cut command in 1 second
 
-# define USAGE_ERROR "ft_ping: usage error: Destination address required"
+# define MSG_HELP "Try 'ft_ping -?' or 'ft_ping -h' for more information."
+# define MSG_ERROR_MISSING_HOST "ft_ping: missing host operand"
+# define MSG_ERROR_UNRECOGNIZED_OPTION "ft_ping: unrecognized option"
+# define MSG_ERROR_INVALID_OPTION "ft_ping: invalid option --"
+# define MSG_INVALID_VALUE "ft_ping: invalid value"
 
 struct ping_pkt {
     struct icmphdr icmp_header;
@@ -94,9 +101,9 @@ typedef struct s_flags {
     bool ttl_flag;      // Time to live flag
     int ttl_value;      // Time to live value
     bool W_flag;        // Wait W_num seconds for a response flag
-    int W_num;          // Wait W_num seconds for a response
+    int W_num;          // Wait W_num seconds for a response value
     bool w_flag;        // Stop after w_num seconds flag
-    int w_num;          // Stop after w_num seconds
+    int w_num;          // Stop after w_num seconds value
     bool H_flag;        // Help flag
 } t_flags;
 
@@ -116,44 +123,33 @@ typedef struct s_ping {
     pid_t ping_id;
 } t_ping;
 
-
-bool parsing(int argc, char *argv[], t_ping *ping);
 int ft_ping(t_ping *ping);
+bool parsing(int argc, char *argv[], t_ping *ping);
 void signal_handler(int signal);
 bool convert_address(t_ping *ping);
-void init_struct(t_ping *ping, char *string);
-bool is_root(const t_ping *ping);
 bool dns_lookup(t_ping *ping);
-bool create_raw_socket(t_ping *ping);
-void ping_loop(t_ping *pin);
-unsigned short checksum(void *b, int len);
-int is_flag(const char *str);
-bool get_flag_value(const int *argc, char **argv, int *i, int *flag_value_store, int flag);
-bool get_ttl_value(t_ping *ping, char *arg);
-void print_usage();
-void print_usage_error();
-bool verify_usage(const t_ping *ping);
 void fill_packet(int *msg_count, struct ping_pkt *packet);
-void exit_error(char *str);
+void exit_error(char *str, int ret_value);
+
 void process_rtt(t_rtt **rtt_list, long double rtt);
-long double get_last_rtt(t_rtt *rtt_list);
+long double get_last_rtt(const t_rtt *rtt_list);
 long double get_min_rtt(t_rtt *rtt_list);
-long double get_max_rtt(t_rtt *rtt_list);
-long double get_avg_rtt(t_rtt *rtt_list);
+long double get_max_rtt(const t_rtt *rtt_list);
+long double get_avg_rtt(const t_rtt *rtt_list);
 long double get_mdev_rtt(t_rtt *rtt_list);
 void free_rtt_list(t_rtt *rtt_node);
-void print_stats(const t_ping *ping, int msg_count, int msg_received_count, int errors);
+
 long double get_elapsed_time_ms(const struct timespec *time_start, struct timespec *time_end);
 void get_timeout(const t_ping *ping, struct timeval *timeout);
 bool is_time_limit_reached(const t_ping *ping, struct timespec time_start);
-void print_stats(const t_ping *ping, const int msg_count, const int msg_received_count, const int errors);
+
+void print_usage(void);
+void print_error(char *error_msg);
+void print_stats(const t_ping *ping, int msg_count, int msg_received_count, int errors);
 void print_non_echo_icmp(const t_ping *ping, const struct iphdr *base_ip_hdr, const struct icmphdr *icmp_hdr, char* sender_ip, const unsigned long received_packet_size);
 void print_custom_message(const struct icmphdr* icmp_hdr);
 void print_packet_content(const struct iphdr* base_ip_hdr);
 void print_first_line(t_ping* ping);
-void print_option_need_argument(const int flag_value);
-bool is_time_limit_reached(const t_ping *ping, const struct timespec time_start);
-long double get_elapsed_time_ms(const struct timespec *time_start, struct timespec *time_end);
-void get_timeout(const t_ping *ping, struct timeval *timeout);
+void print_option_need_argument(int flag_value);
 
 #endif

@@ -9,10 +9,10 @@ Vagrant.configure("2") do |config|
 
         control.vm.provider "virtualbox" do |vb|
             vb.memory = 12288
-            vb.cpus = 3
+            vb.cpus = 2
             vb.name = machine_name
             vb.linked_clone = true
-            vb.gui = true
+            vb.gui = ENV['VAGRANT_GUI'] == '1'
             vb.customize ["modifyvm", :id, "--vram", "128"]
             vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
             vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]

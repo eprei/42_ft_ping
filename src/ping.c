@@ -2,15 +2,7 @@
 
 volatile sig_atomic_t loop_running = 1;
 
-int ft_ping(t_ping *ping) {
-    if (convert_address(ping) || dns_lookup(ping)){
-          ping_loop(ping);
-        return 0;
-    }
-    return 1;
-}
-
-void ping_loop(t_ping *ping) {
+static void ping_loop(t_ping *ping) {
     const int ttl = ping->flags.ttl_value != 0 ? ping->flags.ttl_value : DEFAULT_TTL;
     int msg_count = 0, addr_len, msg_received_count = 0, errors = 0;
     char recv_buffer[RECV_BUFFER_SIZE];
@@ -26,8 +18,6 @@ void ping_loop(t_ping *ping) {
     if (setsockopt(ping->socket_fd, SOL_IP, IP_TTL, &ttl, sizeof(ttl)) != 0) {
         fprintf(stderr, "Setting socket options to TTL failed!\n");
         return;
-    } else {
-//        printf("\nSocket set to TTL...\n");
     }
 
     // Setting timeout of receive setting
@@ -53,10 +43,10 @@ void ping_loop(t_ping *ping) {
         addr_len = (int) sizeof(recv_addr);
         memset(&recv_addr, 0, sizeof(recv_addr));
 
-        size_t bytes_received = recvfrom(ping->socket_fd, recv_buffer, sizeof(recv_buffer), 0, (struct sockaddr*)&recv_addr, (socklen_t *) &addr_len);
+        const size_t bytes_received = recvfrom(ping->socket_fd, recv_buffer, sizeof(recv_buffer), 0, (struct sockaddr*)&recv_addr, (socklen_t *) &addr_len);
         if (bytes_received == (size_t) -1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                printf("Request timeout for icmp_seq %d\n", msg_count);
+                // printf("Request timeout for icmp_seq %d\n", msg_count);
             } else {
                 // fprintf(stderr, "Packet receive failed!\n");
                 if (loop_running) {
@@ -90,4 +80,12 @@ void ping_loop(t_ping *ping) {
 
     // const long double total_elapsed_time = get_elapsed_time_ms(&time_start_total, &time_end_total);
     print_stats(ping, msg_count, msg_received_count, errors);
+}
+
+int ft_ping(t_ping *ping) {
+    if (convert_address(ping) || dns_lookup(ping)){
+        ping_loop(ping);
+        return 0;
+    }
+    return 1;
 }

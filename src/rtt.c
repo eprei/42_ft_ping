@@ -12,7 +12,7 @@ void process_rtt(t_rtt **rtt_list, long double rtt){
     t_rtt *new_rtt_node = malloc(sizeof(t_rtt));
 
     if (new_rtt_node == NULL){
-        exit_error("malloc error while adding new rtt_value to the list");
+        exit_error("malloc error while adding new rtt_value to the list", 1);
     }
 
     new_rtt_node->rtt_value = rtt;
@@ -29,8 +29,8 @@ void process_rtt(t_rtt **rtt_list, long double rtt){
     }
 }
 
-long double get_last_rtt(t_rtt *rtt_list){
-    t_rtt *iterator = rtt_list;
+long double get_last_rtt(const t_rtt *rtt_list){
+    const t_rtt *iterator = rtt_list;
 
     if (rtt_list == NULL){
         return 0.0;
@@ -57,8 +57,8 @@ long double get_min_rtt(t_rtt *rtt_list){
     return min_rtt;
 }
 
-long double get_avg_rtt(t_rtt *rtt_list){
-    t_rtt *iterator = rtt_list;
+long double get_avg_rtt(const t_rtt *rtt_list){
+    const t_rtt *iterator = rtt_list;
     int count = 0;
     long double sum = 0;
 
@@ -74,8 +74,8 @@ long double get_avg_rtt(t_rtt *rtt_list){
     return sum / count;
 }
 
-long double get_max_rtt(t_rtt *rtt_list){
-    t_rtt *iterator = rtt_list;
+long double get_max_rtt(const t_rtt *rtt_list){
+    const t_rtt *iterator = rtt_list;
     long double max_rtt = LDBL_MIN;
 
     if (rtt_list == NULL){
@@ -91,7 +91,7 @@ long double get_max_rtt(t_rtt *rtt_list){
 }
 
 long double get_mdev_rtt(t_rtt *rtt_list){
-    t_rtt *iterator = rtt_list;
+    const t_rtt *iterator = rtt_list;
     long double avg_rtt = get_avg_rtt(rtt_list);
     int count = 0;
     long double sum_sqr_dev_from_mean = 0;

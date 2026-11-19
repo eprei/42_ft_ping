@@ -1,6 +1,6 @@
 #include "ping.h"
 
-void exit_error(char *str){
+void exit_error(char *str, const int ret_value){
     fprintf(stderr, "Error: %s\n", str);
-    exit(1);
+    exit(ret_value);
 }
